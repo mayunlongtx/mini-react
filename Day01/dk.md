@@ -8,5 +8,5 @@
 	- 原生js Api不熟悉 使用错误的方法未能实现功能、对于方法的一些区别不清晰（需要自己再去熟悉一下）
 	- 自己在组织代码结构以及测试方面需要再补强
 
-代码地址：https://github.com/mayunlongtx/mini-react
+代码地址：https://github.com/mayunlongtx/mini-react/tree/main/Day01
 更详细的分析以及思考记录在项目中的每天代码的 README.md 文件中都有更详细的记录

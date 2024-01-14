@@ -22,7 +22,7 @@ function render(el, container) {
   const dom =
     el.type !== "TEXT_ELEMENT"
       ? document.createElement(el.type)
-      : document.createTextNode(el.props.nodeValue);
+      : document.createTextNode("");
   Object.keys(el.props).forEach((key) => {
     if (key !== "children") {
       dom[key] = el.props[key];
@@ -32,6 +32,7 @@ function render(el, container) {
   const children = el.props.children;
   if (children) {
     children.forEach((child) => {
+      console.log(child);
       render(child, dom);
     });
   }
