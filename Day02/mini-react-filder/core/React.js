@@ -1,5 +1,4 @@
-let shouldYield = false;
-let nextWOrkOfUnit = null;
+let nextWorkOfUnit = null;
 function createTextNode(text) {
   return {
     type: "TEXT_ELEMENT",
@@ -22,7 +21,7 @@ function createElement(type, props, ...children) {
 }
 
 function render(el, container) {
-  nextWOrkOfUnit = {
+  nextWorkOfUnit = {
     dom: container,
     props: {
       children: [el],
@@ -31,9 +30,10 @@ function render(el, container) {
 }
 
 function workLoop(deadline) {
-  while (!shouldYield && nextWOrkOfUnit) {
+  let shouldYield = false;
+  while (!shouldYield && nextWorkOfUnit) {
     shouldYield = deadline.timeRemaining() < 1;
-    nextWOrkOfUnit = performWorkOfUnit(nextWOrkOfUnit);
+    nextWorkOfUnit = performUnitOfWork(nextWorkOfUnit);
   }
   // 这里要一直执行，找寻浏览器的空闲时间
   requestIdleCallback(workLoop);
@@ -65,12 +65,12 @@ function initChildren(fiber) {
       if (index === 0) {
         fiber.child = newFiber;
       } else {
-        prevChild.sibling = prevChild;
+        prevChild.sibling = newFiber;
       }
       prevChild = newFiber;
     });
 }
-function performWorkOfUnit(fiber) {
+function performUnitOfWork(fiber) {
   if (!fiber.dom) {
     const dom = (fiber.dom = createDom(fiber.type));
     fiber.parent.dom.append(dom);

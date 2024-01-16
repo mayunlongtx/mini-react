@@ -122,16 +122,12 @@ function performWorkOfUnit(fiber) {
   if (fiber.child) {
     return fiber.child;
   }
-  if (fiber.sibling) {
-    return fiber.sibling;
-  }  
+
   let nextFiber = fiber;
   while (nextFiber) {
     if(nextFiber.sibling) return nextFiber.sibling;
     nextFiber = nextFiber.parent;
   }
-
-  return fiber.parent?.sibling;
 }
 requestIdleCallback(workLoop);
 
