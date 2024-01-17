@@ -1,18 +1,30 @@
 import React from "./core/React.js";
-function handleClick() {
-  console.log(123);
-}
-function Counter({num}) {
-  return <div>Counter: {num}<button onClick={handleClick}>click</button>;</div>;
+
+let count = 66;
+let props = {
+  id: "ididid",
+};
+function Counter({ num }) {
+  function handleClick() {
+    count++;
+    props = {};
+    React.update();
+  }
+  return (
+    <div {...props}>
+      Counter: {count}
+      <button onClick={handleClick}>click</button>
+    </div>
+  );
 }
 function CounterContainer() {
-  return <Counter></Counter>
+  return <Counter></Counter>;
 }
 function App() {
   return (
     <div>
       app-mini-react
-      <Counter num={10}/>
+      <Counter num={10} />
       {/* <Counter num={20}/> */}
     </div>
   );

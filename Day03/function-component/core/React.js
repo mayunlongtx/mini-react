@@ -53,8 +53,8 @@ function commitWork(fiber) {
   if(!fiber) return
 
   let fiberParent = fiber.parent
-  if(!fiberParent.dom) {
-    fiberParent = fiber.parent.parent
+  while (!fiberParent.dom) {
+    fiberParent = fiberParent.parent
   }
 
   if(fiber.dom) {
