@@ -1,7 +1,8 @@
-let shouldYield = false;
 let nextWOrkOfUnit = null;
 let wipRoot = null;
+let wipFiber = null;
 let currentRoot = null;
+let deletions = [];
 function createTextNode(text) {
   return {
     type: "TEXT_ELEMENT",
@@ -32,13 +33,19 @@ function render(el, container) {
       children: [el],
     },
   };
-  nextWOrkOfUnit = wipRoot
+  nextWOrkOfUnit = wipRoot;
 }
 
 function workLoop(deadline) {
+  let shouldYield = false;
   while (!shouldYield && nextWOrkOfUnit) {
-    shouldYield = deadline.timeRemaining() < 2;
     nextWOrkOfUnit = performWorkOfUnit(nextWOrkOfUnit);
+
+    if (wipRoot?.sibling?.type === nextWOrkOfUnit?.type) {
+      nextWOrkOfUnit = undefined;
+    }
+
+    shouldYield = deadline.timeRemaining() < 1;
   }
 
   // 这里的添加替换为统一提交
@@ -49,10 +56,23 @@ function workLoop(deadline) {
   requestIdleCallback(workLoop);
 }
 function commitRoot() {
+  deletions.forEach(commitDeletions);
   commitWork(wipRoot.child);
   currentRoot = wipRoot;
   console.log(currentRoot);
   wipRoot = null;
+  deletions = [];
+}
+function commitDeletions(fiber) {
+  let fiberParent = fiber.parent;
+  while (!fiberParent.dom) {
+    fiberParent = fiberParent.parent;
+  }
+  if (fiber.dom) {
+    fiberParent.dom.removeChild(fiber.dom);
+  } else {
+    commitDeletions(fiber.child);
+  }
 }
 function commitWork(fiber) {
   if (!fiber) return;
@@ -61,7 +81,7 @@ function commitWork(fiber) {
   while (!fiberParent.dom) {
     fiberParent = fiberParent.parent;
   }
- 
+
   if (fiber.effectTag === "update") {
     console.log(fiber.alternate.props);
     updateProps(fiber.dom, fiber.props, fiber.alternate?.props);
@@ -93,8 +113,8 @@ function updateProps(dom, nextProps, prevProps) {
   // 1.  old  有  new 无  就删除
   Object.keys(prevProps).forEach((key) => {
     if (key !== "children") {
-      if(!(key in nextProps)) {
-         dom.removeAttribute(key);
+      if (!(key in nextProps)) {
+        dom.removeAttribute(key);
       }
     }
   });
@@ -105,7 +125,7 @@ function updateProps(dom, nextProps, prevProps) {
       if (nextProps[key] !== prevProps[key]) {
         if (key.startsWith("on")) {
           const eventType = key.slice(2).toLowerCase();
-          dom.removeEventListener(eventType, prevProps[key])
+          dom.removeEventListener(eventType, prevProps[key]);
           dom.addEventListener(eventType, nextProps[key]);
         } else {
           dom[key] = nextProps[key];
@@ -132,15 +152,20 @@ function reconcileChildren(fiber, children) {
         effectTag: "update",
       };
     } else {
-      newFiber = {
-        type: child.type,
-        props: child.props,
-        parent: fiber,
-        child: null,
-        sibling: null,
-        dom: null,
-        effectTag: "placement",
-      };
+      if (child) {
+        newFiber = {
+          type: child.type,
+          props: child.props,
+          parent: fiber,
+          child: null,
+          sibling: null,
+          dom: null,
+          effectTag: "placement",
+        };
+      }
+      if (oldFiber) {
+        deletions.push(oldFiber);
+      }
     }
     if (oldFiber) {
       oldFiber = oldFiber.sibling;
@@ -150,10 +175,17 @@ function reconcileChildren(fiber, children) {
     } else {
       prevChild.sibling = newFiber;
     }
-    prevChild = newFiber;
+    if (newFiber) {
+      prevChild = newFiber;
+    }
   });
+  while (oldFiber) {
+    deletions.push(oldFiber);
+    oldFiber = oldFiber.sibling;
+  }
 }
 function updateFunctionComponent(fiber) {
+  wipFiber = fiber;
   const children = [fiber.type(fiber.props)];
   reconcileChildren(fiber, children);
 }
@@ -190,12 +222,15 @@ function performWorkOfUnit(fiber) {
 }
 
 function update() {
-  wipRoot = {
-    dom: currentRoot.dom,
-    props: currentRoot.props,
-    alternate: currentRoot,
+  return () => {
+    let currentFiber = wipFiber;
+    console.log(currentFiber, "currentFiber");
+    wipRoot = {
+      ...currentFiber,
+      alternate: currentRoot,
+    };
+    nextWOrkOfUnit = wipRoot;
   };
-  nextWOrkOfUnit = wipRoot
 }
 
 requestIdleCallback(workLoop);

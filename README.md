@@ -12,3 +12,5 @@
  [Day04笔记](./Day04/README.md) -  [打卡记录信息](./Day04/dk.md)
 
  [Day05笔记](./Day05/README.md) -  [打卡记录信息](./Day05/dk.md)
+
+ [Day06笔记](./Day06/README.md) -  [打卡记录信息](./Day06/dk.md)
